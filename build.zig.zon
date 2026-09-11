@@ -1,0 +1,17 @@
+.{
+    .name = .mnemezigot_starter,
+    .version = "0.1.0",
+    .fingerprint = 0x24d8fe6fcf6f5b6c,
+    .dependencies = .{
+        .mnemezigot = .{
+            .path = "..",
+        },
+    },
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+        "public",
+        "README.md",
+    },
+}

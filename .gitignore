@@ -1,0 +1,18 @@
+# Zig Cache & Build Artifacts
+.zig-cache/
+zig-cache/
+zig-out/
+zig-pkg/
+
+# Database (SQLite WAL mode files)
+data/
+*.db
+*.db-wal
+*.db-shm
+
+# Compiled WASM in source dir
+public/app.wasm
+
+# OS files
+.DS_Store
+Thumbs.db

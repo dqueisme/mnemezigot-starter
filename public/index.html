@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mnemezigot Starter Template</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="badge badge--pill">Starter Template Project</div>
+      <h1 class="app-title">Mnemezigot Framework</h1>
+      <p class="app-subtitle">
+        Starter template fullstack ultra-cepat dengan <strong>3 Bentuk Keluaran</strong> ditenagai oleh <strong>SQLite WAL Mode (Zero-Config)</strong>.
+      </p>
+    </header>
+
+    <!-- System Status Bar -->
+    <section class="status-bar">
+      <div class="status-item">
+        <span class="status-label">Database Engine</span>
+        <span class="status-val status-val--highlight">SQLite 3.46 (WAL Mode)</span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">Server Core</span>
+        <span class="status-val">Zig 0.16 + httpz</span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">Keluaran Framework</span>
+        <span class="status-val">WASM + JSON + gRPC</span>
+      </div>
+    </section>
+
+    <!-- 3 Output Demonstration Grid -->
+    <section class="outputs-grid">
+      <!-- Output 1: WASM & Web UI -->
+      <div class="card">
+        <div class="card-header">
+          <span class="badge badge--primary">Keluaran 1: WASM (Web UI)</span>
+          <h2 class="card-title">Interaktivitas WebAssembly</h2>
+        </div>
+        <p class="card-desc">
+          Logika frontend dikompilasi langsung dari Zig ke WebAssembly (<code>app.wasm</code> &lt; 10 KB).
+        </p>
+
+        <div class="result-display">
+          <span class="display-label">Status DOM WASM:</span>
+          <div class="display-text" id="wasm-text">Memuat WASM...</div>
+        </div>
+
+        <button id="btn-wasm" class="primary-btn btn--block">
+          <span class="btn-text">⚡ Jalankan Logika WASM</span>
+        </button>
+      </div>
+
+      <!-- Output 2: REST API (JSON) -->
+      <div class="card">
+        <div class="card-header">
+          <span class="badge badge--secondary">Keluaran 2: REST API (JSON)</span>
+          <h2 class="card-title">JSON Endpoint & SQLite</h2>
+        </div>
+        <p class="card-desc">
+          Format data terstruktur untuk integrasi mobile atau microservice (<code>GET /api/messages</code>).
+        </p>
+
+        <form id="form-rest" class="card-form" onsubmit="return false;">
+          <div class="form-group">
+            <input type="text" id="input-message" class="input-field" placeholder="Ketik pesan baru..." required />
+          </div>
+          <button type="submit" id="btn-rest" class="primary-btn btn--block">
+            <span class="btn-text">💾 Kirim via REST (POST JSON)</span>
+          </button>
+        </form>
+
+        <div class="result-display">
+          <span class="display-label">Response JSON Terakhir:</span>
+          <pre class="json-code" id="json-result">{"status": "ready"}</pre>
+        </div>
+      </div>
+
+      <!-- Output 3: gRPC (gRPC-Web / Protobuf) -->
+      <div class="card">
+        <div class="card-header">
+          <span class="badge badge--cyan">Keluaran 3: gRPC-Web</span>
+          <h2 class="card-title">Protobuf Framing Biner</h2>
+        </div>
+        <p class="card-desc">
+          Komunikasi performa tinggi melalui framing biner gRPC-Web langsung ke backend Zig (<code>/api/grpc</code>).
+        </p>
+
+        <div class="result-display">
+          <span class="display-label">Hasil gRPC Biner:</span>
+          <div class="display-text" id="grpc-text">Belum ada request</div>
+        </div>
+
+        <button id="btn-grpc" class="primary-btn btn--block">
+          <span class="btn-text">📡 Panggil gRPC-Web Biner</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Console Log Panel -->
+    <section class="console-card">
+      <div class="console-header">
+        <span class="console-title">Live Transaction & Activity Logs</span>
+        <span class="badge badge--live">LIVE</span>
+      </div>
+      <div id="log-entries" class="console-body"></div>
+    </section>
+  </main>
+
+  <script src="bridge.js"></script>
+</body>
+</html>
