@@ -12,6 +12,8 @@
         "build.zig.zon",
         "src",
         "public",
+        "proto",
         "README.md",
+        "STYLEGUIDE.md",
     },
 }

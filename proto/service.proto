@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package starter;
+
+// Request message for gRPC-Web endpoint (/api/grpc)
+message EchoRequest {}
+
+// Response message containing status info and SQLite message count
+message EchoResponse {
+  string info = 1;
+  int64 total = 2;
+}
+
+// Service definition
+service StarterService {
+  rpc Echo (EchoRequest) returns (EchoResponse);
+}

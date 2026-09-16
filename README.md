@@ -24,6 +24,9 @@ Starter template resmi untuk [Mnemezigot Framework](https://github.com/dqueisme/
 mnemezigot-starter/
 ├── build.zig          # Build script untuk server backend & client WASM
 ├── build.zig.zon      # Package manifest & dependensi mnemezigot
+├── STYLEGUIDE.md      # Panduan styling UI (CSS variables & semantic classes)
+├── proto/             # Skema Protobuf & service gRPC-Web
+│   └── service.proto  # Definisi message EchoRequest & EchoResponse
 ├── public/            # Static assets (HTML, CSS, JS runtime bridge)
 │   ├── index.html     # Semantic HTML UI
 │   ├── style.css      # CSS variabel terpusat (No utility-soup)
