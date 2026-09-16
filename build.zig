@@ -25,6 +25,7 @@ pub fn build(b: *std.Build) void {
             .strip = true,
         }),
     });
+    wasm.root_module.addImport("mnemezigot_client", mn_dep.module("mnemezigot_client"));
     wasm.entry = .disabled;
     wasm.rdynamic = true;
 
