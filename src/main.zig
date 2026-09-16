@@ -49,6 +49,18 @@ fn handleWasm(ctx: *mn.Context) !void {
 }
 
 // =============================================================================
+// DATABASE MODEL (Struct-First Model ala Laravel)
+// =============================================================================
+
+pub const Message = struct {
+    id: ?i64 = null,
+    text: []const u8,
+    created_at: ?[]const u8 = null,
+
+    pub const table_name = "messages";
+};
+
+// =============================================================================
 // KELUARAN 2: REST API (JSON)
 // =============================================================================
 
@@ -57,12 +69,15 @@ const MessageInput = struct {
 };
 
 fn handleGetMessagesJson(ctx: *mn.Context) !void {
-    const total = try ctx.db.queryScalarInt("SELECT COUNT(*) FROM messages;");
+    const total = try ctx.db.from(Message).count();
+    const messages = try ctx.db.from(Message).all(ctx.arena);
+
     try ctx.json(.{
         .status = "success",
         .output_type = "JSON (REST API)",
         .database = "SQLite WAL Mode (Zero-Config)",
         .total_messages = total,
+        .items = messages,
     });
 }
 
@@ -70,13 +85,16 @@ fn handleCreateMessageJson(ctx: *mn.Context) !void {
     const parsed = try ctx.bindJson(MessageInput);
     defer parsed.deinit();
 
-    try ctx.db.insertText("INSERT INTO messages (text) VALUES (?);", parsed.value.text);
-    const new_total = try ctx.db.queryScalarInt("SELECT COUNT(*) FROM messages;");
+    const new_id = try ctx.db.from(Message).insert(.{
+        .text = parsed.value.text,
+    });
+    const new_total = try ctx.db.from(Message).count();
 
     ctx.status(201);
     try ctx.json(.{
         .success = true,
-        .message = "Data tersimpan di SQLite!",
+        .id = new_id,
+        .message = "Data tersimpan di SQLite via Model!",
         .saved_text = parsed.value.text,
         .total = new_total,
     });
@@ -87,13 +105,13 @@ fn handleCreateMessageJson(ctx: *mn.Context) !void {
 // =============================================================================
 
 fn handleGrpcEcho(ctx: *mn.Context) !void {
-    const total = try ctx.db.queryScalarInt("SELECT COUNT(*) FROM messages;");
+    const total = try ctx.db.from(Message).count();
 
     // Encode standard protobuf: message EchoResponse { string info = 1; int64 total = 2; }
     var proto_buf: [256]u8 = undefined;
     var offset: usize = 0;
 
-    const info_str = "Mnemezigot gRPC-Web via SQLite WAL";
+    const info_str = "Mnemezigot gRPC-Web via SQLite WAL Model";
     mn.grpc.writeStringField(&proto_buf, &offset, 1, info_str);
     mn.grpc.writeIntField(&proto_buf, &offset, 2, @intCast(total));
 
@@ -115,15 +133,14 @@ pub fn main() !void {
     });
     defer app.deinit();
 
-    // 2. Setup skema database awal
-    try app.db.exec(
-        \\CREATE TABLE IF NOT EXISTS messages (
-        \\    id INTEGER PRIMARY KEY AUTOINCREMENT,
-        \\    text TEXT NOT NULL,
-        \\    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        \\);
-    );
-    try app.db.exec("INSERT OR IGNORE INTO messages (id, text) VALUES (1, 'Inisialisasi Mnemezigot Framework'), (2, 'SQLite WAL Mode Siap');");
+    // 2. Setup skema database otomatis dari Model Struct (Zero SQL DDL)!
+    try app.db.from(Message).createTableIfNotExists();
+
+    // Inisialisasi data awal jika masih kosong
+    if ((try app.db.from(Message).count()) == 0) {
+        _ = try app.db.from(Message).insert(.{ .text = "Inisialisasi Mnemezigot Framework" });
+        _ = try app.db.from(Message).insert(.{ .text = "SQLite WAL Mode Siap" });
+    }
 
     // 3. Pre-load static assets ke memori
     g_index_html = readFile(allocator, "index.html") catch "<h1>Mnemezigot Starter</h1>";
