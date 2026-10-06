@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mnemezigot Starter Template</title>
+  <title>Mnemezigot Starter - Auth & 2FA Template</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -13,7 +13,7 @@
       <div class="badge badge--pill">Starter Template Project</div>
       <h1 class="app-title">Mnemezigot Framework</h1>
       <p class="app-subtitle">
-        Starter template fullstack ultra-cepat dengan <strong>3 Bentuk Keluaran</strong> ditenagai oleh <strong>SQLite WAL Mode (Zero-Config)</strong>.
+        Starter template fullstack ultra-cepat ditenagai oleh <strong>SQLite WAL Mode</strong> dengan fitur <strong>Auth & 2FA (Google Authenticator)</strong>.
       </p>
     </header>
 
@@ -28,8 +28,113 @@
         <span class="status-val">Zig 0.16 + httpz</span>
       </div>
       <div class="status-item">
-        <span class="status-label">Keluaran Framework</span>
-        <span class="status-val">WASM + JSON + gRPC</span>
+        <span class="status-label">Otentikasi & Keamanan</span>
+        <span class="status-val">Bearer / Cookie + TOTP 2FA</span>
+      </div>
+    </section>
+
+    <!-- Authentication & 2FA Interactive Panel -->
+    <section class="auth-section">
+      <div class="card card--full">
+        <div class="card-header">
+          <span class="badge badge--primary">Aplikasi Auth & TOTP 2FA</span>
+          <h2 class="card-title">Sistem Otentikasi & Keamanan Pengguna</h2>
+          <p class="card-desc">
+            Demonstrasi alur Registrasi, Login, Verifikasi 2FA Google Authenticator, Akses Endpoint Terproteksi (<code>GET /api/me</code>), dan Logout.
+          </p>
+        </div>
+
+        <div class="auth-grid">
+          <!-- Form Register -->
+          <div class="auth-box">
+            <h3 class="auth-box-title">1. Registrasi Akun</h3>
+            <form id="form-register" class="card-form" onsubmit="return false;">
+              <div class="form-group">
+                <label for="reg-username">Username</label>
+                <input type="text" id="reg-username" class="input-field" placeholder="Username baru..." required />
+              </div>
+              <div class="form-group">
+                <label for="reg-password">Password</label>
+                <input type="password" id="reg-password" class="input-field" placeholder="Password..." required />
+              </div>
+              <button type="submit" id="btn-register" class="primary-btn btn--block">
+                <span class="btn-text">📝 Daftar Akun Baru</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Form Login -->
+          <div class="auth-box">
+            <h3 class="auth-box-title">2. Login Pengguna</h3>
+            <form id="form-login" class="card-form" onsubmit="return false;">
+              <div class="form-group">
+                <label for="login-username">Username</label>
+                <input type="text" id="login-username" class="input-field" placeholder="Username..." required />
+              </div>
+              <div class="form-group">
+                <label for="login-password">Password</label>
+                <input type="password" id="login-password" class="input-field" placeholder="Password..." required />
+              </div>
+              <button type="submit" id="btn-login" class="primary-btn btn--block">
+                <span class="btn-text">🔑 Masuk (Login)</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Panel 2FA Verification (Login Step 2) -->
+          <div class="auth-box" id="panel-2fa-login" style="display: none;">
+            <h3 class="auth-box-title text--alert">⚡ Verifikasi 2FA (Google Authenticator)</h3>
+            <p class="auth-box-desc">Akun ini memerlukan kode TOTP 6-digit dari aplikasi Google Authenticator.</p>
+            <form id="form-2fa-login" class="card-form" onsubmit="return false;">
+              <div class="form-group">
+                <label for="login-2fa-code">Kode 6-Digit TOTP</label>
+                <input type="text" id="login-2fa-code" class="input-field" placeholder="Contoh: 123456" maxlength="6" required />
+              </div>
+              <button type="submit" id="btn-2fa-login" class="primary-btn btn--block btn--accent">
+                <span class="btn-text">🛡️ Verifikasi Kode & Masuk</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Panel Setup 2FA & Profile (After Login) -->
+          <div class="auth-box">
+            <h3 class="auth-box-title">3. Manajemen 2FA & Profil</h3>
+            <div class="auth-actions">
+              <button id="btn-setup-2fa" class="primary-btn btn--secondary btn--block">
+                <span class="btn-text">⚙️ Setup 2FA (Google Authenticator)</span>
+              </button>
+
+              <div id="setup-2fa-box" class="setup-2fa-details" style="display: none; margin-top: 1rem;">
+                <p class="card-desc"><strong>Secret Base32:</strong> <code id="totp-secret-key">-</code></p>
+                <p class="card-desc"><strong>URI Google Authenticator:</strong></p>
+                <pre class="json-code" id="totp-uri" style="white-space: pre-wrap; word-break: break-all;">-</pre>
+
+                <form id="form-verify-setup-2fa" class="card-form" style="margin-top: 0.5rem;" onsubmit="return false;">
+                  <div class="form-group">
+                    <input type="text" id="setup-2fa-code" class="input-field" placeholder="Kode 6-digit untuk konfirmasi..." maxlength="6" required />
+                  </div>
+                  <button type="submit" id="btn-confirm-2fa" class="primary-btn btn--block">
+                    <span class="btn-text">✅ Aktifkan 2FA Sekarang</span>
+                  </button>
+                </form>
+              </div>
+
+              <div class="button-group" style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                <button id="btn-get-me" class="primary-btn btn--block">
+                  <span class="btn-text">👤 Profil Saya (/api/me)</span>
+                </button>
+                <button id="btn-logout" class="primary-btn btn--danger btn--block">
+                  <span class="btn-text">🚪 Logout</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="result-display" style="margin-top: 1.5rem;">
+          <span class="display-label">Hasil Operasi Otentikasi Terakhir:</span>
+          <pre class="json-code" id="auth-result">{"status": "ready", "auth_token": "Belum ada token"}</pre>
+        </div>
       </div>
     </section>
 
