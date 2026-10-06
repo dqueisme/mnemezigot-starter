@@ -16,6 +16,7 @@
   --accent-cyan: #06b6d4;
   --accent-emerald: #10b981;
   --accent-purple: #8b5cf6;
+  --accent-red: #ef4444;
 
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -106,6 +107,47 @@ body {
   color: var(--accent-emerald);
 }
 
+/* Auth Section Grid */
+.auth-section {
+  width: 100%;
+}
+
+.card--full {
+  width: 100%;
+}
+
+.auth-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+  margin-top: 0.5rem;
+}
+
+.auth-box {
+  background-color: var(--bg-card-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.auth-box-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+}
+
+.auth-box-desc {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.text--alert {
+  color: var(--primary) !important;
+}
+
 /* Outputs Grid (3 Columns) */
 .outputs-grid {
   display: grid;
@@ -150,6 +192,13 @@ body {
 .form-group {
   display: flex;
   flex-direction: column;
+  gap: 0.25rem;
+}
+
+.form-group label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 600;
 }
 
 .input-field {
@@ -225,6 +274,23 @@ body {
 
 .primary-btn.btn--block {
   width: 100%;
+}
+
+.primary-btn.btn--secondary {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--accent-emerald);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  box-shadow: none;
+}
+
+.primary-btn.btn--accent {
+  background: linear-gradient(135deg, var(--accent-cyan), #0284c7);
+  box-shadow: 0 4px 14px 0 rgba(6, 182, 212, 0.35);
+}
+
+.primary-btn.btn--danger {
+  background: linear-gradient(135deg, var(--accent-red), #dc2626);
+  box-shadow: 0 4px 14px 0 rgba(239, 68, 68, 0.35);
 }
 
 /* Badges */
@@ -316,6 +382,9 @@ body {
 }
 
 @media (max-width: 820px) {
+  .auth-grid {
+    grid-template-columns: 1fr;
+  }
   .outputs-grid {
     grid-template-columns: 1fr;
   }
