@@ -4,7 +4,7 @@
     .fingerprint = 0x24d8fe6fcf6f5b6c,
     .dependencies = .{
         .mnemezigot = .{
-            .path = "..",
+            .path = "../mnemezigot",
         },
     },
     .paths = .{

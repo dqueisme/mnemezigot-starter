@@ -72,4 +72,21 @@ pub fn build(b: *std.Build) void {
     }
     const run_step = b.step("run", "Run the application");
     run_step.dependOn(&run_cmd.step);
+
+    // 5. Sample Markdown TUI Executable (`zig build sample-markdown`)
+    const md_sample_exe = b.addExecutable(.{
+        .name = "sample-markdown",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("examples/markdown_sample.zig"),
+            .target = target,
+            .optimize = optimize,
+            .link_libc = true,
+        }),
+    });
+    md_sample_exe.root_module.addImport("mnemezigot", mn_dep.module("mnemezigot"));
+    b.installArtifact(md_sample_exe);
+
+    const run_md_cmd = b.addRunArtifact(md_sample_exe);
+    const md_step = b.step("sample-markdown", "Run Glow-style Markdown TUI sample");
+    md_step.dependOn(&run_md_cmd.step);
 }

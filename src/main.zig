@@ -80,11 +80,17 @@ const Verify2faInput = struct {
     pre_auth_token: ?[]const u8 = null,
 };
 
+fn getTimestampSec() i64 {
+    var ts: std.posix.system.timespec = undefined;
+    _ = std.posix.system.clock_gettime(std.posix.system.CLOCK.REALTIME, &ts);
+    return @intCast(ts.sec);
+}
+
 fn getCurrentUser(ctx: *mn.Context) !?auth.User {
     const token = auth.extractAuthToken(ctx, auth.g_auth_config) orelse return null;
 
     const sessions = try ctx.db.from(auth.Session).all(ctx.arena);
-    const now = std.time.timestamp();
+    const now = getTimestampSec();
 
     var valid_user_id: ?i64 = null;
     for (sessions) |sess| {
@@ -107,7 +113,7 @@ fn getCurrentUser(ctx: *mn.Context) !?auth.User {
 fn handleRegister(ctx: *mn.Context) !void {
     const parsed = ctx.bindJson(RegisterInput) catch {
         ctx.status(400);
-        return ctx.json(.{ .success = false, .error = "Invalid payload" });
+        return ctx.json(.{ .success = false, .@"error" = "Invalid payload" });
     };
     defer parsed.deinit();
 
@@ -116,14 +122,14 @@ fn handleRegister(ctx: *mn.Context) !void {
 
     if (username.len == 0 or password.len == 0) {
         ctx.status(400);
-        return ctx.json(.{ .success = false, .error = "Username and password cannot be empty" });
+        return ctx.json(.{ .success = false, .@"error" = "Username and password cannot be empty" });
     }
 
     const users = try ctx.db.from(auth.User).all(ctx.arena);
     for (users) |u| {
         if (std.mem.eql(u8, u.username, username)) {
             ctx.status(400);
-            return ctx.json(.{ .success = false, .error = "Username is already taken" });
+            return ctx.json(.{ .success = false, .@"error" = "Username is already taken" });
         }
     }
 
@@ -146,7 +152,7 @@ fn handleRegister(ctx: *mn.Context) !void {
 fn handleLogin(ctx: *mn.Context) !void {
     const parsed = ctx.bindJson(LoginInput) catch {
         ctx.status(400);
-        return ctx.json(.{ .success = false, .error = "Invalid payload" });
+        return ctx.json(.{ .success = false, .@"error" = "Invalid payload" });
     };
     defer parsed.deinit();
 
@@ -164,16 +170,16 @@ fn handleLogin(ctx: *mn.Context) !void {
 
     const user = matched_user orelse {
         ctx.status(401);
-        return ctx.json(.{ .success = false, .error = "Username atau password salah" });
+        return ctx.json(.{ .success = false, .@"error" = "Username atau password salah" });
     };
 
     if (!auth.verifyPassword(password, user.password_hash)) {
         ctx.status(401);
-        return ctx.json(.{ .success = false, .error = "Username atau password salah" });
+        return ctx.json(.{ .success = false, .@"error" = "Username atau password salah" });
     }
 
     const token = try auth.generateRandomToken(ctx.arena);
-    const now = std.time.timestamp();
+    const now = getTimestampSec();
 
     const requires_2fa = user.two_factor_enabled or auth.g_auth_config.require_2fa;
 
@@ -222,23 +228,23 @@ fn handleLogin(ctx: *mn.Context) !void {
 fn handleVerify2faLogin(ctx: *mn.Context) !void {
     const parsed = ctx.bindJson(Verify2faInput) catch {
         ctx.status(400);
-        return ctx.json(.{ .success = false, .error = "Invalid payload" });
+        return ctx.json(.{ .success = false, .@"error" = "Invalid payload" });
     };
     defer parsed.deinit();
 
     const code_str = std.mem.trim(u8, parsed.value.code, " ");
     const code = std.fmt.parseInt(u32, code_str, 10) catch {
         ctx.status(400);
-        return ctx.json(.{ .success = false, .error = "Kode 2FA harus berupa 6 angka" });
+        return ctx.json(.{ .success = false, .@"error" = "Kode 2FA harus berupa 6 angka" });
     };
 
     const token = parsed.value.pre_auth_token orelse auth.extractAuthToken(ctx, auth.g_auth_config) orelse {
         ctx.status(401);
-        return ctx.json(.{ .success = false, .error = "Pre-auth token tidak ditemukan" });
+        return ctx.json(.{ .success = false, .@"error" = "Pre-auth token tidak ditemukan" });
     };
 
     const sessions = try ctx.db.from(auth.Session).all(ctx.arena);
-    const now = std.time.timestamp();
+    const now = getTimestampSec();
 
     var matched_session: ?auth.Session = null;
     for (sessions) |s| {
@@ -250,7 +256,7 @@ fn handleVerify2faLogin(ctx: *mn.Context) !void {
 
     const sess = matched_session orelse {
         ctx.status(401);
-        return ctx.json(.{ .success = false, .error = "Sesi pre-auth kadaluarsa atau tidak valid" });
+        return ctx.json(.{ .success = false, .@"error" = "Sesi pre-auth kadaluarsa atau tidak valid" });
     };
 
     const users = try ctx.db.from(auth.User).all(ctx.arena);
@@ -266,17 +272,17 @@ fn handleVerify2faLogin(ctx: *mn.Context) !void {
 
     const user = target_user orelse {
         ctx.status(401);
-        return ctx.json(.{ .success = false, .error = "Pengguna tidak ditemukan" });
+        return ctx.json(.{ .success = false, .@"error" = "Pengguna tidak ditemukan" });
     };
 
     const secret = user.two_factor_secret orelse {
         ctx.status(400);
-        return ctx.json(.{ .success = false, .error = "2FA belum disiapkan untuk akun ini" });
+        return ctx.json(.{ .success = false, .@"error" = "2FA belum disiapkan untuk akun ini" });
     };
 
     if (!auth.verifyTOTPCode(secret, code, @intCast(now))) {
         ctx.status(401);
-        return ctx.json(.{ .success = false, .error = "Kode 2FA TOTP salah atau kadaluarsa" });
+        return ctx.json(.{ .success = false, .@"error" = "Kode 2FA TOTP salah atau kadaluarsa" });
     }
 
     const full_token = try auth.generateRandomToken(ctx.arena);
@@ -309,7 +315,7 @@ fn handleVerify2faLogin(ctx: *mn.Context) !void {
 fn handleSetup2fa(ctx: *mn.Context) !void {
     const user = (try getCurrentUser(ctx)) orelse {
         ctx.status(401);
-        return ctx.json(.{ .success = false, .error = "Unauthorized" });
+        return ctx.json(.{ .success = false, .@"error" = "Unauthorized" });
     };
 
     const secret = try auth.generateBase32Secret(ctx.arena);
@@ -334,30 +340,30 @@ fn handleSetup2fa(ctx: *mn.Context) !void {
 fn handleVerify2faSetup(ctx: *mn.Context) !void {
     const user = (try getCurrentUser(ctx)) orelse {
         ctx.status(401);
-        return ctx.json(.{ .success = false, .error = "Unauthorized" });
+        return ctx.json(.{ .success = false, .@"error" = "Unauthorized" });
     };
 
     const parsed = ctx.bindJson(Verify2faInput) catch {
         ctx.status(400);
-        return ctx.json(.{ .success = false, .error = "Invalid payload" });
+        return ctx.json(.{ .success = false, .@"error" = "Invalid payload" });
     };
     defer parsed.deinit();
 
     const code_str = std.mem.trim(u8, parsed.value.code, " ");
     const code = std.fmt.parseInt(u32, code_str, 10) catch {
         ctx.status(400);
-        return ctx.json(.{ .success = false, .error = "Kode 2FA harus berupa 6 angka" });
+        return ctx.json(.{ .success = false, .@"error" = "Kode 2FA harus berupa 6 angka" });
     };
 
     const secret = user.two_factor_secret orelse {
         ctx.status(400);
-        return ctx.json(.{ .success = false, .error = "Silakan jalankan Setup 2FA terlebih dahulu" });
+        return ctx.json(.{ .success = false, .@"error" = "Silakan jalankan Setup 2FA terlebih dahulu" });
     };
 
-    const now = std.time.timestamp();
+    const now = getTimestampSec();
     if (!auth.verifyTOTPCode(secret, code, @intCast(now))) {
         ctx.status(401);
-        return ctx.json(.{ .success = false, .error = "Kode 2FA TOTP salah. Coba lagi." });
+        return ctx.json(.{ .success = false, .@"error" = "Kode 2FA TOTP salah. Coba lagi." });
     }
 
     _ = try ctx.db.from(auth.User).insert(.{
@@ -377,7 +383,7 @@ fn handleVerify2faSetup(ctx: *mn.Context) !void {
 fn handleGetMe(ctx: *mn.Context) !void {
     const user = (try getCurrentUser(ctx)) orelse {
         ctx.status(401);
-        return ctx.json(.{ .success = false, .error = "Sesi tidak valid atau telah kadaluarsa" });
+        return ctx.json(.{ .success = false, .@"error" = "Sesi tidak valid atau telah kadaluarsa" });
     };
 
     try ctx.json(.{

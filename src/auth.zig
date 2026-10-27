@@ -50,7 +50,7 @@ pub const Session = struct {
 // CRYPTO & PASSWORD HASHING HELPERS (Integrates Framework Native mn.crypto)
 // =============================================================================
 
-pub fn hashPassword(allocator: std.mem.Allocator, password: []const u8) ![]u8 {
+pub fn hashPassword(allocator: std.mem.Allocator, password: []const u8) ![]const u8 {
     if (@hasDecl(mn, "crypto") and @hasDecl(mn.crypto, "hashPassword")) {
         return mn.crypto.hashPassword(allocator, password);
     }
@@ -82,11 +82,11 @@ pub fn verifyPassword(password: []const u8, expected_hash: []const u8) bool {
 
 pub fn generateRandomToken(allocator: std.mem.Allocator) ![]u8 {
     var rand_bytes: [32]u8 = undefined;
-    std.crypto.random.bytes(&rand_bytes);
+    const io = std.Io.Threaded.global_single_threaded.io();
+    io.random(&rand_bytes);
 
-    var hex_buf: [64]u8 = undefined;
-    const hex = try std.fmt.bufPrint(&hex_buf, "{s}", .{std.fmt.fmtSliceHexLower(&rand_bytes)});
-    return allocator.dupe(u8, hex);
+    const hex = std.fmt.bytesToHex(rand_bytes, .lower);
+    return allocator.dupe(u8, &hex);
 }
 
 // =============================================================================
@@ -102,7 +102,8 @@ pub fn generateBase32Secret(allocator: std.mem.Allocator) ![]u8 {
         }
     }
     var raw_bytes: [10]u8 = undefined;
-    std.crypto.random.bytes(&raw_bytes);
+    const io = std.Io.Threaded.global_single_threaded.io();
+    io.random(&raw_bytes);
     const BASE32_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 
     var secret = try allocator.alloc(u8, 16);
